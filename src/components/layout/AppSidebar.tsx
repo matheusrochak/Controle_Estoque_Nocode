@@ -1,5 +1,6 @@
-import { Package, BarChart3, ShoppingCart, FileText, Settings, Home } from "lucide-react";
+import { Package, BarChart3, ShoppingCart, FileText, Settings, Home, Users, Building2 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 import {
   Sidebar,
@@ -13,19 +14,31 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-const items = [
+const mainItems = [
   { title: "Dashboard", url: "/", icon: Home },
   { title: "Produtos", url: "/produtos", icon: Package },
   { title: "Movimentações", url: "/movimentacoes", icon: ShoppingCart },
+  { title: "Fornecedores", url: "/fornecedores", icon: Building2 },
   { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
+];
+
+const adminItems = [
+  { title: "Usuários", url: "/usuarios", icon: Users, requiredRole: "admin" },
   { title: "Configurações", url: "/configuracoes", icon: Settings },
 ];
 
 export function AppSidebar() {
   const { state } = useSidebar();
+  const { profile } = useAuth();
   const location = useLocation();
   const currentPath = location.pathname;
   const isCollapsed = state === "collapsed";
+
+  const isAdmin = profile?.perfil === 'admin';
+  const canViewItem = (item: any) => {
+    if (!item.requiredRole) return true;
+    return item.requiredRole === profile?.perfil;
+  };
 
   const isActive = (path: string) => currentPath === path;
   const getNavClass = ({ isActive }: { isActive: boolean }) =>
@@ -53,7 +66,7 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-2">
-              {items.map((item) => (
+              {mainItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink
@@ -67,6 +80,32 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Admin Section */}
+        <SidebarGroup>
+          <SidebarGroupLabel className={isCollapsed ? "hidden" : "block"}>
+            {isAdmin ? "Administração" : "Configurações"}
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu className="space-y-2">
+              {adminItems
+                .filter(canViewItem)
+                .map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to={item.url}
+                        className={`${getNavClass({ isActive: isActive(item.url) })} flex items-center gap-3 px-3 py-2 rounded-lg transition-smooth`}
+                      >
+                        <item.icon className="w-5 h-5" />
+                        {!isCollapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Table,
   TableBody,
@@ -11,16 +12,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, TrendingUp, TrendingDown, Package } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, Package, Info } from "lucide-react";
 import { useMovements } from "@/hooks/useMovements";
 import { useProducts } from "@/hooks/useProducts";
+import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 import { MovementForm } from "@/components/movements/MovementForm";
 
 export default function Movimentacoes() {
   const { movements: movimentacoes = [], loading } = useMovements();
   const { products: produtos = [] } = useProducts();
+  const { profile } = useAuth();
   const [isMovementDialogOpen, setIsMovementDialogOpen] = useState(false);
+  
+  const canCreateMovements = profile?.perfil === 'admin' || profile?.perfil === 'operador';
 
   const getTotalMovements = (tipo: 'entrada' | 'saida') => {
     return movimentacoes
@@ -54,14 +59,32 @@ export default function Movimentacoes() {
             <h1 className="text-3xl font-bold text-foreground">Movimentações</h1>
             <p className="text-muted-foreground">Histórico de entradas e saídas do estoque</p>
           </div>
-          <Button 
-            className="bg-gradient-primary shadow-soft"
-            onClick={() => setIsMovementDialogOpen(true)}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Nova Movimentação
-          </Button>
+          {canCreateMovements ? (
+            <Button 
+              className="bg-gradient-primary shadow-soft"
+              onClick={() => setIsMovementDialogOpen(true)}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Nova Movimentação
+            </Button>
+          ) : (
+            <Badge variant="secondary" className="px-4 py-2">
+              <Info className="w-4 h-4 mr-2" />
+              Apenas visualização
+            </Badge>
+          )}
         </div>
+
+        {/* Permission Info */}
+        {!canCreateMovements && (
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              Seu perfil <strong>{profile?.perfil}</strong> permite apenas visualizar as movimentações. 
+              Para registrar movimentações, entre em contato com um administrador.
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
