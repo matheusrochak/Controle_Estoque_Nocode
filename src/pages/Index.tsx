@@ -3,24 +3,24 @@ import { StatsCard } from "@/components/dashboard/StatsCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Package, TrendingUp, AlertTriangle, ShoppingCart, Plus, FileText } from "lucide-react";
+import { useProducts } from "@/hooks/useProducts";
+import { useMovements } from "@/hooks/useMovements";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
-  // Mock data - will be replaced with real data from backend
-  const mockProducts = [
-    { id: 1, nome: "Notebook Dell", sku: "DELL001", estoque: 15, estoqueMinimo: 5, categoria: "Eletrônicos" },
-    { id: 2, nome: "Mouse Logitech", sku: "LOG001", estoque: 3, estoqueMinimo: 10, categoria: "Eletrônicos" },
-    { id: 3, nome: "Teclado Mecânico", sku: "TECA001", estoque: 8, estoqueMinimo: 5, categoria: "Eletrônicos" },
-  ];
+  const navigate = useNavigate();
+  const { products: produtos, loading: productsLoading } = useProducts();
+  const { movements: movimentacoes, loading: movementsLoading } = useMovements();
 
-  const mockMovements = [
-    { id: 1, produto: "Notebook Dell", tipo: "entrada", quantidade: 5, data: "2024-01-15" },
-    { id: 2, produto: "Mouse Logitech", tipo: "saida", quantidade: 2, data: "2024-01-14" },
-    { id: 3, produto: "Teclado Mecânico", tipo: "entrada", quantidade: 3, data: "2024-01-13" },
-  ];
-
-  const totalProducts = mockProducts.length;
-  const lowStockProducts = mockProducts.filter(p => p.estoque <= p.estoqueMinimo).length;
-  const totalValue = mockProducts.reduce((acc, p) => acc + p.estoque * 100, 0); // Mock calculation
+  const totalProducts = produtos.length;
+  const lowStockProducts = produtos.filter(p => p.estoque_atual <= p.estoque_minimo).length;
+  const totalValue = produtos.reduce((acc, p) => acc + (p.estoque_atual * (p.preco_custo || 0)), 0);
+  
+  // Recent movements (today)
+  const today = new Date().toISOString().split('T')[0];
+  const todayMovements = movimentacoes.filter(mov => 
+    mov.created_at.startsWith(today)
+  ).length;
 
   return (
     <MainLayout>
@@ -32,11 +32,17 @@ const Index = () => {
             <p className="text-muted-foreground">Visão geral do seu estoque</p>
           </div>
           <div className="flex gap-2">
-            <Button className="bg-gradient-primary shadow-soft">
+            <Button 
+              className="bg-gradient-primary shadow-soft"
+              onClick={() => navigate('/produtos')}
+            >
               <Plus className="w-4 h-4 mr-2" />
               Novo Produto
             </Button>
-            <Button variant="outline">
+            <Button 
+              variant="outline"
+              onClick={() => navigate('/relatorios')}
+            >
               <FileText className="w-4 h-4 mr-2" />
               Relatório
             </Button>
@@ -69,7 +75,7 @@ const Index = () => {
           
           <StatsCard
             title="Movimentações Hoje"
-            value="12"
+            value={todayMovements.toString()}
             icon={<ShoppingCart className="w-5 h-5" />}
             trend={{ value: 5, isPositive: false }}
           />
@@ -87,21 +93,27 @@ const Index = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {mockProducts
-                  .filter(p => p.estoque <= p.estoqueMinimo)
-                  .map(product => (
-                    <div key={product.id} className="flex items-center justify-between p-3 bg-warning-light rounded-lg">
-                      <div>
-                        <p className="font-medium text-foreground">{product.nome}</p>
-                        <p className="text-sm text-muted-foreground">{product.sku}</p>
+                {productsLoading ? (
+                  <div className="text-center text-muted-foreground py-4">
+                    Carregando produtos...
+                  </div>
+                ) : (
+                  produtos
+                    .filter(p => p.estoque_atual <= p.estoque_minimo)
+                    .map(product => (
+                      <div key={product.id} className="flex items-center justify-between p-3 bg-warning-light rounded-lg">
+                        <div>
+                          <p className="font-medium text-foreground">{product.nome}</p>
+                          <p className="text-sm text-muted-foreground">{product.sku}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-warning">{product.estoque_atual} {product.unidade}</p>
+                          <p className="text-xs text-muted-foreground">Min: {product.estoque_minimo}</p>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-bold text-warning">{product.estoque} un</p>
-                        <p className="text-xs text-muted-foreground">Min: {product.estoqueMinimo}</p>
-                      </div>
-                    </div>
-                  ))}
-                {mockProducts.filter(p => p.estoque <= p.estoqueMinimo).length === 0 && (
+                    ))
+                )}
+                {!productsLoading && produtos.filter(p => p.estoque_atual <= p.estoque_minimo).length === 0 && (
                   <p className="text-center text-muted-foreground py-4">
                     Todos os produtos estão com estoque adequado
                   </p>
@@ -120,22 +132,38 @@ const Index = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {mockMovements.map(movement => (
-                  <div key={movement.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                    <div>
-                      <p className="font-medium text-foreground">{movement.produto}</p>
-                      <p className="text-sm text-muted-foreground">{movement.data}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className={`font-bold ${
-                        movement.tipo === 'entrada' ? 'text-success' : 'text-destructive'
-                      }`}>
-                        {movement.tipo === 'entrada' ? '+' : '-'}{movement.quantidade}
-                      </p>
-                      <p className="text-xs text-muted-foreground capitalize">{movement.tipo}</p>
-                    </div>
+                {movementsLoading ? (
+                  <div className="text-center text-muted-foreground py-4">
+                    Carregando movimentações...
                   </div>
-                ))}
+                ) : (
+                  movimentacoes.slice(0, 5).map(movement => {
+                    const produto = produtos.find(p => p.id === movement.produto_id);
+                    return (
+                      <div key={movement.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                        <div>
+                          <p className="font-medium text-foreground">{produto?.nome || 'Produto não encontrado'}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {new Date(movement.created_at).toLocaleDateString('pt-BR')}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className={`font-bold ${
+                            movement.tipo === 'entrada' ? 'text-success' : 'text-destructive'
+                          }`}>
+                            {movement.tipo === 'entrada' ? '+' : '-'}{movement.quantidade}
+                          </p>
+                          <p className="text-xs text-muted-foreground capitalize">{movement.tipo}</p>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+                {!movementsLoading && movimentacoes.length === 0 && (
+                  <p className="text-center text-muted-foreground py-4">
+                    Nenhuma movimentação recente
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>

@@ -15,59 +15,32 @@ import {
 } from "@/components/ui/table";
 import { Plus, Search, Edit, Eye, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useProducts } from "@/hooks/useProducts";
 
 export default function Produtos() {
   const { toast } = useToast();
+  const { products: produtos, loading, createProduct: addProduct } = useProducts();
   const [showForm, setShowForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Mock data - will be replaced with real data from backend
-  const [products] = useState([
-    {
-      id: 1,
-      nome: "Notebook Dell Inspiron",
-      sku: "DELL001",
-      categoria: "Eletrônicos",
-      estoque: 15,
-      estoqueMinimo: 5,
-      precoCusto: 2500.00,
-      precoVenda: 3200.00,
-      unidade: "un"
-    },
-    {
-      id: 2,
-      nome: "Mouse Logitech MX",
-      sku: "LOG001",
-      categoria: "Eletrônicos",
-      estoque: 3,
-      estoqueMinimo: 10,
-      precoCusto: 180.00,
-      precoVenda: 250.00,
-      unidade: "un"
-    },
-    {
-      id: 3,
-      nome: "Teclado Mecânico RGB",
-      sku: "TECA001",
-      categoria: "Eletrônicos",
-      estoque: 8,
-      estoqueMinimo: 5,
-      precoCusto: 320.00,
-      precoVenda: 450.00,
-      unidade: "un"
+  const handleAddProduct = async (productData: any) => {
+    try {
+      await addProduct(productData);
+      toast({
+        title: "Produto cadastrado!",
+        description: "O produto foi cadastrado com sucesso.",
+      });
+      setShowForm(false);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao cadastrar produto",
+        description: "Verifique os dados e tente novamente.",
+      });
     }
-  ]);
-
-  const handleAddProduct = (productData: any) => {
-    console.log("Novo produto:", productData);
-    toast({
-      title: "Produto cadastrado!",
-      description: "O produto foi cadastrado com sucesso.",
-    });
-    setShowForm(false);
   };
 
-  const filteredProducts = products.filter(product =>
+  const filteredProducts = produtos.filter(product =>
     product.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.sku.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -132,7 +105,7 @@ export default function Produtos() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{products.length}</div>
+              <div className="text-2xl font-bold">{produtos.length}</div>
             </CardContent>
           </Card>
 
@@ -144,7 +117,7 @@ export default function Produtos() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-warning">
-                {products.filter(p => p.estoque <= p.estoqueMinimo).length}
+                {produtos.filter(p => p.estoque_atual <= p.estoque_minimo).length}
               </div>
             </CardContent>
           </Card>
@@ -157,7 +130,7 @@ export default function Produtos() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-success">
-                R$ {products.reduce((acc, p) => acc + (p.estoque * p.precoCusto), 0).toLocaleString()}
+                R$ {produtos.reduce((acc, p) => acc + (p.estoque_atual * (p.preco_custo || 0)), 0).toLocaleString()}
               </div>
             </CardContent>
           </Card>
@@ -186,62 +159,74 @@ export default function Produtos() {
             <CardTitle>Lista de Produtos</CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Produto</TableHead>
-                  <TableHead>SKU</TableHead>
-                  <TableHead>Categoria</TableHead>
-                  <TableHead>Estoque</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Preço</TableHead>
-                  <TableHead>Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredProducts.map((product) => {
-                  const stockStatus = getStockStatus(product.estoque, product.estoqueMinimo);
-                  return (
-                    <TableRow key={product.id}>
-                      <TableCell className="font-medium">{product.nome}</TableCell>
-                      <TableCell className="font-mono text-sm">{product.sku}</TableCell>
-                      <TableCell>{product.categoria}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          {product.estoque <= product.estoqueMinimo && (
-                            <AlertTriangle className="w-4 h-4 text-warning" />
-                          )}
-                          {product.estoque} {product.unidade}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={stockStatus.variant}>
-                          {stockStatus.label}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm">
-                          <div>Venda: R$ {product.precoVenda.toFixed(2)}</div>
-                          <div className="text-muted-foreground">
-                            Custo: R$ {product.precoCusto.toFixed(2)}
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Produto</TableHead>
+                    <TableHead>SKU</TableHead>
+                    <TableHead>Categoria</TableHead>
+                    <TableHead>Estoque</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Preço</TableHead>
+                    <TableHead>Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredProducts.map((product) => {
+                    const stockStatus = getStockStatus(product.estoque_atual, product.estoque_minimo);
+                    return (
+                      <TableRow key={product.id}>
+                        <TableCell className="font-medium">{product.nome}</TableCell>
+                        <TableCell className="font-mono text-sm">{product.sku}</TableCell>
+                        <TableCell>{product.categoria || 'N/A'}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {product.estoque_atual <= product.estoque_minimo && (
+                              <AlertTriangle className="w-4 h-4 text-warning" />
+                            )}
+                            {product.estoque_atual} {product.unidade}
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button variant="ghost" size="sm">
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                        </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={stockStatus.variant}>
+                            {stockStatus.label}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm">
+                            <div className="text-muted-foreground">
+                              Custo: R$ {product.preco_custo?.toFixed(2) || '0.00'}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button variant="ghost" size="sm">
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm">
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                  {filteredProducts.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                        Nenhum produto encontrado
                       </TableCell>
                     </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                  )}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -11,77 +11,26 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Plus, TrendingUp, TrendingDown, Package } from "lucide-react";
+import { useMovements } from "@/hooks/useMovements";
+import { useProducts } from "@/hooks/useProducts";
 
 export default function Movimentacoes() {
-  // Mock data - will be replaced with real data from backend
-  const movements = [
-    {
-      id: 1,
-      produto: "Notebook Dell Inspiron",
-      sku: "DELL001",
-      tipo: "entrada",
-      quantidade: 10,
-      motivo: "Compra fornecedor",
-      usuario: "Admin",
-      data: "2024-01-15T10:30:00",
-      valorUnitario: 2500.00
-    },
-    {
-      id: 2,
-      produto: "Mouse Logitech MX",
-      sku: "LOG001",
-      tipo: "saida",
-      quantidade: 2,
-      motivo: "Venda",
-      usuario: "João Silva",
-      data: "2024-01-15T14:20:00",
-      valorUnitario: 250.00
-    },
-    {
-      id: 3,
-      produto: "Teclado Mecânico RGB",
-      sku: "TECA001",
-      tipo: "entrada",
-      quantidade: 5,
-      motivo: "Devolução cliente",
-      usuario: "Maria Santos",
-      data: "2024-01-14T16:45:00",
-      valorUnitario: 450.00
-    },
-    {
-      id: 4,
-      produto: "Notebook Dell Inspiron",
-      sku: "DELL001",
-      tipo: "saida",
-      quantidade: 1,
-      motivo: "Venda",
-      usuario: "Pedro Costa",
-      data: "2024-01-14T11:15:00",
-      valorUnitario: 3200.00
-    },
-    {
-      id: 5,
-      produto: "Mouse Logitech MX",
-      sku: "LOG001",
-      tipo: "entrada",
-      quantidade: 15,
-      motivo: "Compra fornecedor",
-      usuario: "Admin",
-      data: "2024-01-13T09:00:00",
-      valorUnitario: 180.00
-    }
-  ];
+  const { movements: movimentacoes, loading } = useMovements();
+  const { products: produtos } = useProducts();
 
   const getTotalMovements = (tipo: 'entrada' | 'saida') => {
-    return movements
+    return movimentacoes
       .filter(m => m.tipo === tipo)
       .reduce((acc, m) => acc + m.quantidade, 0);
   };
 
   const getTotalValue = (tipo: 'entrada' | 'saida') => {
-    return movements
+    return movimentacoes
       .filter(m => m.tipo === tipo)
-      .reduce((acc, m) => acc + (m.quantidade * m.valorUnitario), 0);
+      .reduce((acc, m) => {
+        const produto = produtos.find(p => p.id === m.produto_id);
+        return acc + (m.quantidade * (produto?.preco_custo || 0));
+      }, 0);
   };
 
   const formatDate = (dateString: string) => {
@@ -173,76 +122,78 @@ export default function Movimentacoes() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Data/Hora</TableHead>
-                  <TableHead>Produto</TableHead>
-                  <TableHead>SKU</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Quantidade</TableHead>
-                  <TableHead>Valor Unit.</TableHead>
-                  <TableHead>Total</TableHead>
-                  <TableHead>Motivo</TableHead>
-                  <TableHead>Usuário</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {movements.map((movement) => {
-                  const { date, time } = formatDate(movement.data);
-                  const total = movement.quantidade * movement.valorUnitario;
-                  
-                  return (
-                    <TableRow key={movement.id}>
-                      <TableCell>
-                        <div className="text-sm">
-                          <div className="font-medium">{date}</div>
-                          <div className="text-muted-foreground">{time}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        {movement.produto}
-                      </TableCell>
-                      <TableCell className="font-mono text-sm">
-                        {movement.sku}
-                      </TableCell>
-                      <TableCell>
-                        <Badge 
-                          variant={movement.tipo === 'entrada' ? 'default' : 'destructive'}
-                          className={movement.tipo === 'entrada' ? 'bg-success text-success-foreground' : ''}
-                        >
-                          <div className="flex items-center gap-1">
-                            {movement.tipo === 'entrada' ? (
-                              <TrendingUp className="w-3 h-3" />
-                            ) : (
-                              <TrendingDown className="w-3 h-3" />
-                            )}
-                            {movement.tipo === 'entrada' ? 'Entrada' : 'Saída'}
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Data/Hora</TableHead>
+                    <TableHead>Produto</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Quantidade</TableHead>
+                    <TableHead>Observação</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {movimentacoes.map((movement) => {
+                    const { date, time } = formatDate(movement.created_at);
+                    const produto = produtos.find(p => p.id === movement.produto_id);
+                    
+                    return (
+                      <TableRow key={movement.id}>
+                        <TableCell>
+                          <div className="text-sm">
+                            <div className="font-medium">{date}</div>
+                            <div className="text-muted-foreground">{time}</div>
                           </div>
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="font-bold">
-                        <span className={movement.tipo === 'entrada' ? 'text-success' : 'text-destructive'}>
-                          {movement.tipo === 'entrada' ? '+' : '-'}{movement.quantidade}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        R$ {movement.valorUnitario.toFixed(2)}
-                      </TableCell>
-                      <TableCell className="font-bold">
-                        <span className={movement.tipo === 'entrada' ? 'text-success' : 'text-destructive'}>
-                          R$ {total.toFixed(2)}
-                        </span>
-                      </TableCell>
-                      <TableCell>{movement.motivo}</TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {movement.usuario}
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          <div>
+                            <div>{produto?.nome || 'Produto não encontrado'}</div>
+                            <div className="text-sm text-muted-foreground font-mono">
+                              {produto?.sku || 'N/A'}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge 
+                            variant={movement.tipo === 'entrada' ? 'default' : 'destructive'}
+                            className={movement.tipo === 'entrada' ? 'bg-success text-success-foreground' : ''}
+                          >
+                            <div className="flex items-center gap-1">
+                              {movement.tipo === 'entrada' ? (
+                                <TrendingUp className="w-3 h-3" />
+                              ) : (
+                                <TrendingDown className="w-3 h-3" />
+                              )}
+                              {movement.tipo === 'entrada' ? 'Entrada' : 'Saída'}
+                            </div>
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="font-bold">
+                          <span className={movement.tipo === 'entrada' ? 'text-success' : 'text-destructive'}>
+                            {movement.tipo === 'entrada' ? '+' : '-'}{movement.quantidade}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {movement.observacao || 'N/A'}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                  {movimentacoes.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                        Nenhuma movimentação encontrada
                       </TableCell>
                     </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                  )}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
       </div>
