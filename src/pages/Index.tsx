@@ -9,18 +9,18 @@ import { useNavigate } from "react-router-dom";
 
 const Index = () => {
   const navigate = useNavigate();
-  const { products: produtos, loading: productsLoading } = useProducts();
-  const { movements: movimentacoes, loading: movementsLoading } = useMovements();
+  const { products: produtos = [], loading: productsLoading } = useProducts();
+  const { movements: movimentacoes = [], loading: movementsLoading } = useMovements();
 
-  const totalProducts = produtos.length;
-  const lowStockProducts = produtos.filter(p => p.estoque_atual <= p.estoque_minimo).length;
-  const totalValue = produtos.reduce((acc, p) => acc + (p.estoque_atual * (p.preco_custo || 0)), 0);
+  const totalProducts = produtos?.length || 0;
+  const lowStockProducts = produtos?.filter(p => p.estoque_atual <= p.estoque_minimo)?.length || 0;
+  const totalValue = produtos?.reduce((acc, p) => acc + (p.estoque_atual * (p.preco_custo || 0)), 0) || 0;
   
   // Recent movements (today)
   const today = new Date().toISOString().split('T')[0];
-  const todayMovements = movimentacoes.filter(mov => 
-    mov.created_at.startsWith(today)
-  ).length;
+  const todayMovements = movimentacoes?.filter(mov => 
+    mov.created_at?.startsWith(today)
+  )?.length || 0;
 
   return (
     <MainLayout>
@@ -99,8 +99,8 @@ const Index = () => {
                   </div>
                 ) : (
                   produtos
-                    .filter(p => p.estoque_atual <= p.estoque_minimo)
-                    .map(product => (
+                    ?.filter(p => p.estoque_atual <= p.estoque_minimo)
+                    ?.map(product => (
                       <div key={product.id} className="flex items-center justify-between p-3 bg-warning-light rounded-lg">
                         <div>
                           <p className="font-medium text-foreground">{product.nome}</p>
@@ -111,9 +111,9 @@ const Index = () => {
                           <p className="text-xs text-muted-foreground">Min: {product.estoque_minimo}</p>
                         </div>
                       </div>
-                    ))
+                    )) || []
                 )}
-                {!productsLoading && produtos.filter(p => p.estoque_atual <= p.estoque_minimo).length === 0 && (
+                {!productsLoading && produtos?.filter(p => p.estoque_atual <= p.estoque_minimo)?.length === 0 && (
                   <p className="text-center text-muted-foreground py-4">
                     Todos os produtos estão com estoque adequado
                   </p>
@@ -137,8 +137,8 @@ const Index = () => {
                     Carregando movimentações...
                   </div>
                 ) : (
-                  movimentacoes.slice(0, 5).map(movement => {
-                    const produto = produtos.find(p => p.id === movement.produto_id);
+                  movimentacoes?.slice(0, 5)?.map(movement => {
+                    const produto = produtos?.find(p => p.id === movement.produto_id);
                     return (
                       <div key={movement.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                         <div>
@@ -157,9 +157,9 @@ const Index = () => {
                         </div>
                       </div>
                     );
-                  })
+                  }) || []
                 )}
-                {!movementsLoading && movimentacoes.length === 0 && (
+                {!movementsLoading && movimentacoes?.length === 0 && (
                   <p className="text-center text-muted-foreground py-4">
                     Nenhuma movimentação recente
                   </p>
