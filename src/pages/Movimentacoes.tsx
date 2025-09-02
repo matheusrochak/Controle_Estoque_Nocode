@@ -2,6 +2,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -13,24 +14,27 @@ import {
 import { Plus, TrendingUp, TrendingDown, Package } from "lucide-react";
 import { useMovements } from "@/hooks/useMovements";
 import { useProducts } from "@/hooks/useProducts";
+import { useState } from "react";
+import { MovementForm } from "@/components/movements/MovementForm";
 
 export default function Movimentacoes() {
-  const { movements: movimentacoes, loading } = useMovements();
-  const { products: produtos } = useProducts();
+  const { movements: movimentacoes = [], loading } = useMovements();
+  const { products: produtos = [] } = useProducts();
+  const [isMovementDialogOpen, setIsMovementDialogOpen] = useState(false);
 
   const getTotalMovements = (tipo: 'entrada' | 'saida') => {
     return movimentacoes
-      .filter(m => m.tipo === tipo)
-      .reduce((acc, m) => acc + m.quantidade, 0);
+      ?.filter(m => m.tipo === tipo)
+      ?.reduce((acc, m) => acc + m.quantidade, 0) || 0;
   };
 
   const getTotalValue = (tipo: 'entrada' | 'saida') => {
     return movimentacoes
-      .filter(m => m.tipo === tipo)
-      .reduce((acc, m) => {
-        const produto = produtos.find(p => p.id === m.produto_id);
+      ?.filter(m => m.tipo === tipo)
+      ?.reduce((acc, m) => {
+        const produto = produtos?.find(p => p.id === m.produto_id);
         return acc + (m.quantidade * (produto?.preco_custo || 0));
-      }, 0);
+      }, 0) || 0;
   };
 
   const formatDate = (dateString: string) => {
@@ -50,7 +54,10 @@ export default function Movimentacoes() {
             <h1 className="text-3xl font-bold text-foreground">Movimentações</h1>
             <p className="text-muted-foreground">Histórico de entradas e saídas do estoque</p>
           </div>
-          <Button className="bg-gradient-primary shadow-soft">
+          <Button 
+            className="bg-gradient-primary shadow-soft"
+            onClick={() => setIsMovementDialogOpen(true)}
+          >
             <Plus className="w-4 h-4 mr-2" />
             Nova Movimentação
           </Button>
@@ -138,9 +145,9 @@ export default function Movimentacoes() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {movimentacoes.map((movement) => {
+                  {movimentacoes?.map((movement) => {
                     const { date, time } = formatDate(movement.created_at);
-                    const produto = produtos.find(p => p.id === movement.produto_id);
+                    const produto = produtos?.find(p => p.id === movement.produto_id);
                     
                     return (
                       <TableRow key={movement.id}>
@@ -183,8 +190,8 @@ export default function Movimentacoes() {
                         </TableCell>
                       </TableRow>
                     );
-                  })}
-                  {movimentacoes.length === 0 && (
+                  }) || []}
+                  {(movimentacoes?.length || 0) === 0 && (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                         Nenhuma movimentação encontrada
@@ -196,6 +203,23 @@ export default function Movimentacoes() {
             )}
           </CardContent>
         </Card>
+
+        {/* Movement Dialog */}
+        <Dialog open={isMovementDialogOpen} onOpenChange={setIsMovementDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Nova Movimentação</DialogTitle>
+              <DialogDescription>
+                Registre uma entrada, saída ou ajuste de estoque
+              </DialogDescription>
+            </DialogHeader>
+            
+            <MovementForm 
+              onSuccess={() => setIsMovementDialogOpen(false)}
+              onCancel={() => setIsMovementDialogOpen(false)}
+            />
+          </DialogContent>
+        </Dialog>
       </div>
     </MainLayout>
   );

@@ -14,6 +14,7 @@ import { Plus, Edit, Users, Shield, Eye } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { CreateUserForm } from '@/components/users/CreateUserForm';
 
 interface UserProfile {
   id: string;
@@ -30,6 +31,7 @@ export default function Usuarios() {
   const [loading, setLoading] = useState(true);
   const [selectedProfile, setSelectedProfile] = useState<UserProfile | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   const isAdmin = profile?.perfil === 'admin';
 
@@ -151,6 +153,13 @@ export default function Usuarios() {
               Gerencie os usuários e suas permissões no sistema
             </p>
           </div>
+          <Button 
+            onClick={() => setIsCreateDialogOpen(true)}
+            className="bg-gradient-primary shadow-soft"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Funcionário
+          </Button>
         </div>
 
         {/* User Roles Info */}
@@ -274,63 +283,85 @@ export default function Usuarios() {
           </CardContent>
         </Card>
 
+        {/* Create User Dialog */}
+        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Cadastrar Novo Funcionário</DialogTitle>
+              <DialogDescription>
+                Adicione um novo funcionário ao sistema
+              </DialogDescription>
+            </DialogHeader>
+            
+            <CreateUserForm 
+              onSuccess={() => {
+                setIsCreateDialogOpen(false);
+                fetchProfiles();
+              }}
+              onCancel={() => setIsCreateDialogOpen(false)}
+            />
+          </DialogContent>
+        </Dialog>
+
         {/* Edit User Dialog */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="sm:max-w-md">
-            <form onSubmit={handleSubmit}>
-              <DialogHeader>
-                <DialogTitle>Editar Usuário</DialogTitle>
-                <DialogDescription>
-                  Atualize as informações e permissões do usuário
-                </DialogDescription>
-              </DialogHeader>
+            {selectedProfile && (
+              <form onSubmit={handleSubmit}>
+                <DialogHeader>
+                  <DialogTitle>Editar Usuário</DialogTitle>
+                  <DialogDescription>
+                    Atualize as informações e permissões do usuário
+                  </DialogDescription>
+                </DialogHeader>
 
-              <div className="grid gap-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="nome">Nome</Label>
-                  <Input
-                    id="nome"
-                    name="nome"
-                    defaultValue={selectedProfile?.nome}
-                    required
-                  />
+                <div className="grid gap-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="nome">Nome</Label>
+                    <Input
+                      id="nome"
+                      name="nome"
+                      defaultValue={selectedProfile?.nome}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="perfil">Perfil de Acesso</Label>
+                    <Select name="perfil" defaultValue={selectedProfile?.perfil}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="visualizador">
+                          <div className="flex items-center gap-2">
+                            <Eye className="h-4 w-4" />
+                            Visualizador
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="operador">
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4" />
+                            Operador
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="admin">
+                          <div className="flex items-center gap-2">
+                            <Shield className="h-4 w-4" />
+                            Administrador
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="perfil">Perfil de Acesso</Label>
-                  <Select name="perfil" defaultValue={selectedProfile?.perfil}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="visualizador">
-                        <div className="flex items-center gap-2">
-                          <Eye className="h-4 w-4" />
-                          Visualizador
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="operador">
-                        <div className="flex items-center gap-2">
-                          <Users className="h-4 w-4" />
-                          Operador
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="admin">
-                        <div className="flex items-center gap-2">
-                          <Shield className="h-4 w-4" />
-                          Administrador
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
 
-              <DialogFooter>
-                <Button type="submit">
-                  Atualizar
-                </Button>
-              </DialogFooter>
-            </form>
+                <DialogFooter>
+                  <Button type="submit">
+                    Atualizar
+                  </Button>
+                </DialogFooter>
+              </form>
+            )}
           </DialogContent>
         </Dialog>
       </div>
