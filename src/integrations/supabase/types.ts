@@ -14,16 +14,189 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      fornecedores: {
+        Row: {
+          ativo: boolean
+          cnpj: string | null
+          contato: string | null
+          created_at: string
+          email: string | null
+          id: string
+          nome: string
+          telefone: string | null
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          cnpj?: string | null
+          contato?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          nome: string
+          telefone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          cnpj?: string | null
+          contato?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          nome?: string
+          telefone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      movimentacoes: {
+        Row: {
+          created_at: string
+          estoque_anterior: number
+          estoque_posterior: number
+          id: string
+          observacao: string | null
+          produto_id: string
+          quantidade: number
+          tipo: Database["public"]["Enums"]["movement_type"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          estoque_anterior: number
+          estoque_posterior: number
+          id?: string
+          observacao?: string | null
+          produto_id: string
+          quantidade: number
+          tipo: Database["public"]["Enums"]["movement_type"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          estoque_anterior?: number
+          estoque_posterior?: number
+          id?: string
+          observacao?: string | null
+          produto_id?: string
+          quantidade?: number
+          tipo?: Database["public"]["Enums"]["movement_type"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "movimentacoes_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      produtos: {
+        Row: {
+          ativo: boolean
+          categoria: string | null
+          created_at: string
+          descricao: string | null
+          estoque_atual: number
+          estoque_maximo: number
+          estoque_minimo: number
+          fornecedor_id: string | null
+          id: string
+          nome: string
+          preco_custo: number | null
+          sku: string
+          unidade: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          categoria?: string | null
+          created_at?: string
+          descricao?: string | null
+          estoque_atual?: number
+          estoque_maximo?: number
+          estoque_minimo?: number
+          fornecedor_id?: string | null
+          id?: string
+          nome: string
+          preco_custo?: number | null
+          sku: string
+          unidade?: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          categoria?: string | null
+          created_at?: string
+          descricao?: string | null
+          estoque_atual?: number
+          estoque_maximo?: number
+          estoque_minimo?: number
+          fornecedor_id?: string | null
+          id?: string
+          nome?: string
+          preco_custo?: number | null
+          sku?: string
+          unidade?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "produtos_fornecedor_id_fkey"
+            columns: ["fornecedor_id"]
+            isOneToOne: false
+            referencedRelation: "fornecedores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+          perfil: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+          perfil?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+          perfil?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_sku: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_user_role: {
+        Args: { user_uuid?: string }
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
     }
     Enums: {
-      [_ in never]: never
+      movement_type: "entrada" | "saida" | "ajuste"
+      user_role: "admin" | "operador" | "visualizador"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +323,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      movement_type: ["entrada", "saida", "ajuste"],
+      user_role: ["admin", "operador", "visualizador"],
+    },
   },
 } as const
