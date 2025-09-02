@@ -87,10 +87,9 @@ export function ProductForm({ onSubmit, initialData }: ProductFormProps) {
                   <SelectValue placeholder="Selecione a categoria" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="eletronicos">Eletrônicos</SelectItem>
-                  <SelectItem value="roupas">Roupas</SelectItem>
-                  <SelectItem value="alimentacao">Alimentação</SelectItem>
-                  <SelectItem value="casa-jardim">Casa e Jardim</SelectItem>
+                  <SelectItem value="eletronico">Eletrônico</SelectItem>
+                  <SelectItem value="Peca">Peça</SelectItem>
+                  <SelectItem value="Componente">Compoenente</SelectItem>
                   <SelectItem value="outros">Outros</SelectItem>
                 </SelectContent>
               </Select>
