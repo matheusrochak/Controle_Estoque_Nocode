@@ -56,14 +56,14 @@ export function ProductForm({ onSubmit, initialData }: ProductFormProps) {
                 required
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="sku">SKU</Label>
               <Input
                 id="sku"
                 value={formData.sku}
                 onChange={(e) => handleChange("sku", e.target.value)}
-                placeholder="SKU será gerado automaticamente"
+                placeholder="SKU único do produto"
                 required
               />
             </div>
@@ -76,89 +76,110 @@ export function ProductForm({ onSubmit, initialData }: ProductFormProps) {
               value={formData.descricao}
               onChange={(e) => handleChange("descricao", e.target.value)}
               placeholder="Descrição detalhada do produto"
-              className="min-h-[80px]"
+              rows={3}
             />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="categoria">Categoria</Label>
+              <Select onValueChange={(value) => handleChange("categoria", value)} defaultValue={formData.categoria}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione uma categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Eletrônicos">Eletrônicos</SelectItem>
+                  <SelectItem value="Roupas">Roupas</SelectItem>
+                  <SelectItem value="Casa">Casa</SelectItem>
+                  <SelectItem value="Esporte">Esporte</SelectItem>
+                  <SelectItem value="Livros">Livros</SelectItem>
+                  <SelectItem value="Outros">Outros</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="unidade">Unidade de Medida</Label>
+              <Select onValueChange={(value) => handleChange("unidade", value)} defaultValue={formData.unidade}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione a unidade" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="unidade">Unidade</SelectItem>
+                  <SelectItem value="kg">Quilograma</SelectItem>
+                  <SelectItem value="g">Grama</SelectItem>
+                  <SelectItem value="l">Litro</SelectItem>
+                  <SelectItem value="ml">Mililitro</SelectItem>
+                  <SelectItem value="m">Metro</SelectItem>
+                  <SelectItem value="cm">Centímetro</SelectItem>
+                  <SelectItem value="caixa">Caixa</SelectItem>
+                  <SelectItem value="pacote">Pacote</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="preco_custo">Preço de Custo (R$)</Label>
+              <Input
+                id="preco_custo"
+                type="number"
+                value={formData.preco_custo}
+                onChange={(e) => handleChange("preco_custo", e.target.value)}
+                placeholder="0.00"
+                step="0.01"
+                min="0"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="fornecedor_id">Fornecedor</Label>
+              <Select onValueChange={(value) => handleChange("fornecedor_id", value)} defaultValue={formData.fornecedor_id}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um fornecedor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Nenhum fornecedor</SelectItem>
+                  {/* Lista de fornecedores será preenchida dinamicamente */}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="categoria">Categoria</Label>
-              <Select value={formData.categoria} onValueChange={(value) => handleChange("categoria", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione a categoria" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="eletronico">Eletrônico</SelectItem>
-                  <SelectItem value="Peca">Peça</SelectItem>
-                  <SelectItem value="Componente">Compoenente</SelectItem>
-                  <SelectItem value="outros">Outros</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="unidade">Unidade</Label>
-              <Select value={formData.unidade} onValueChange={(value) => handleChange("unidade", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Unidade de medida" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="un">Unidade</SelectItem>
-                  <SelectItem value="kg">Quilograma</SelectItem>
-                  <SelectItem value="l">Litro</SelectItem>
-                  <SelectItem value="m">Metro</SelectItem>
-                  <SelectItem value="cx">Caixa</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="estoque">Estoque Atual</Label>
+              <Label htmlFor="estoque_atual">Estoque Atual</Label>
               <Input
-                id="estoque"
+                id="estoque_atual"
                 type="number"
-                value={formData.estoque}
-                onChange={(e) => handleChange("estoque", e.target.value)}
+                value={formData.estoque_atual}
+                onChange={(e) => handleChange("estoque_atual", e.target.value)}
+                placeholder="0"
+                min="0"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="estoque_minimo">Estoque Mínimo</Label>
+              <Input
+                id="estoque_minimo"
+                type="number"
+                value={formData.estoque_minimo}
+                onChange={(e) => handleChange("estoque_minimo", e.target.value)}
                 placeholder="0"
                 min="0"
               />
             </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="precoCusto">Preço de Custo</Label>
-              <Input
-                id="precoCusto"
-                type="number"
-                step="0.01"
-                value={formData.precoCusto}
-                onChange={(e) => handleChange("precoCusto", e.target.value)}
-                placeholder="0.00"
-                min="0"
-              />
-            </div>
 
             <div className="space-y-2">
-              <Label htmlFor="precoVenda">Preço de Venda</Label>
+              <Label htmlFor="estoque_maximo">Estoque Máximo</Label>
               <Input
-                id="precoVenda"
+                id="estoque_maximo"
                 type="number"
-                step="0.01"
-                value={formData.precoVenda}
-                onChange={(e) => handleChange("precoVenda", e.target.value)}
-                placeholder="0.00"
-                min="0"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="estoqueMinimo">Estoque Mínimo</Label>
-              <Input
-                id="estoqueMinimo"
-                type="number"
-                value={formData.estoqueMinimo}
-                onChange={(e) => handleChange("estoqueMinimo", e.target.value)}
+                value={formData.estoque_maximo}
+                onChange={(e) => handleChange("estoque_maximo", e.target.value)}
                 placeholder="0"
                 min="0"
               />

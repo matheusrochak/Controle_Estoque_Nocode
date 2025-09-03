@@ -25,7 +25,17 @@ export default function Produtos() {
 
   const handleAddProduct = async (productData: any) => {
     try {
-      await addProduct(productData);
+      // Converter campos numéricos para os tipos corretos
+      const processedData = {
+        ...productData,
+        preco_custo: productData.preco_custo ? parseFloat(productData.preco_custo) : 0,
+        estoque_atual: parseInt(productData.estoque_atual) || 0,
+        estoque_minimo: parseInt(productData.estoque_minimo) || 0,
+        estoque_maximo: parseInt(productData.estoque_maximo) || 0,
+        fornecedor_id: productData.fornecedor_id || null,
+      };
+
+      await addProduct(processedData);
       toast({
         title: "Produto cadastrado!",
         description: "O produto foi cadastrado com sucesso.",
