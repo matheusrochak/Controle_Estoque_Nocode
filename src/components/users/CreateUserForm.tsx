@@ -27,32 +27,32 @@ export function CreateUserForm({ onSuccess, onCancel }: CreateUserFormProps) {
     const perfil = formData.get('perfil') as 'admin' | 'operador' | 'visualizador';
 
     try {
-      // Create user in Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      // Create auth user first
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
-        email_confirm: true,
-        user_metadata: {
-          full_name: nome
+        options: {
+          data: {
+            full_name: nome
+          }
         }
       });
 
       if (authError) throw authError;
+      
+      if (!authData.user) throw new Error('Falha ao criar usuário');
 
-      // Create profile entry
+      // Update the profile with the correct role
       const { error: profileError } = await supabase
         .from('profiles')
-        .insert({
-          user_id: authData.user.id,
-          nome,
-          perfil
-        });
+        .update({ perfil })
+        .eq('user_id', authData.user.id);
 
       if (profileError) throw profileError;
 
       toast({
         title: "Funcionário cadastrado!",
-        description: `${nome} foi cadastrado com sucesso. Credenciais: ${email}`,
+        description: `${nome} foi adicionado com perfil ${perfil}. Um email de confirmação será enviado.`,
       });
 
       onSuccess();
