@@ -40,9 +40,6 @@ export function useMovements() {
           produtos (
             nome,
             sku
-          ),
-          profiles!movimentacoes_user_id_profiles_user_id_fkey (
-            nome
           )
         `)
         .order('created_at', { ascending: false });

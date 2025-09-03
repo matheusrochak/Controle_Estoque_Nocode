@@ -18,11 +18,12 @@ export function ProductForm({ onSubmit, initialData }: ProductFormProps) {
     sku: initialData?.sku || `SKU${Date.now()}`,
     descricao: initialData?.descricao || "",
     categoria: initialData?.categoria || "",
-    unidade: initialData?.unidade || "",
-    precoCusto: initialData?.precoCusto || "",
-    precoVenda: initialData?.precoVenda || "",
-    estoque: initialData?.estoque || "",
-    estoqueMinimo: initialData?.estoqueMinimo || "",
+    unidade: initialData?.unidade || "unidade",
+    fornecedor_id: initialData?.fornecedor_id || "",
+    preco_custo: initialData?.preco_custo || "",
+    estoque_atual: initialData?.estoque_atual || "",
+    estoque_minimo: initialData?.estoque_minimo || "",
+    estoque_maximo: initialData?.estoque_maximo || "",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
