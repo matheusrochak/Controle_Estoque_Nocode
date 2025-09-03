@@ -27,15 +27,23 @@ export function CreateUserForm({ onSuccess, onCancel }: CreateUserFormProps) {
     const perfil = formData.get('perfil') as 'admin' | 'operador' | 'visualizador';
 
     try {
-      // For now, we'll create a profile entry directly
-      // In production, this would integrate with admin API to create auth users
-      // Generate a temporary user_id for demo purposes
-      const tempUserId = crypto.randomUUID();
-      
+      // Create user in Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: {
+          full_name: nome
+        }
+      });
+
+      if (authError) throw authError;
+
+      // Create profile entry
       const { error: profileError } = await supabase
         .from('profiles')
         .insert({
-          user_id: tempUserId,
+          user_id: authData.user.id,
           nome,
           perfil
         });
@@ -44,7 +52,7 @@ export function CreateUserForm({ onSuccess, onCancel }: CreateUserFormProps) {
 
       toast({
         title: "Funcionário cadastrado!",
-        description: `${nome} foi adicionado com perfil ${perfil}. Um email de convite será enviado.`,
+        description: `${nome} foi cadastrado com sucesso. Credenciais: ${email}`,
       });
 
       onSuccess();

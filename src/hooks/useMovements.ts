@@ -41,7 +41,7 @@ export function useMovements() {
             nome,
             sku
           ),
-          profiles!inner (
+          profiles!movimentacoes_user_id_fkey (
             nome
           )
         `)
