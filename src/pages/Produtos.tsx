@@ -32,7 +32,7 @@ export default function Produtos() {
         estoque_atual: parseInt(productData.estoque_atual) || 0,
         estoque_minimo: parseInt(productData.estoque_minimo) || 0,
         estoque_maximo: parseInt(productData.estoque_maximo) || 0,
-        fornecedor_id: productData.fornecedor_id || null,
+        fornecedor_id: productData.fornecedor_id && productData.fornecedor_id !== "none" ? productData.fornecedor_id : null,
       };
 
       await addProduct(processedData);

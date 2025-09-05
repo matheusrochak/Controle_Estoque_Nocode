@@ -140,7 +140,7 @@ export function ProductForm({ onSubmit, initialData }: ProductFormProps) {
                   <SelectValue placeholder="Selecione um fornecedor" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhum fornecedor</SelectItem>
+                  <SelectItem value="none">Nenhum fornecedor</SelectItem>
                   {/* Lista de fornecedores será preenchida dinamicamente */}
                 </SelectContent>
               </Select>
