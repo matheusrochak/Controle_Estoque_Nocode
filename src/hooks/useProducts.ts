@@ -64,9 +64,10 @@ export function useProducts() {
         .from('produtos')
         .insert(productData as any)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) throw new Error('Erro ao criar produto');
 
       toast({
         title: "Produto criado!",

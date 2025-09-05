@@ -51,9 +51,10 @@ export function useSuppliers() {
         .from('fornecedores')
         .insert([supplierData])
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) throw new Error('Erro ao criar fornecedor');
 
       toast({
         title: "Fornecedor criado!",

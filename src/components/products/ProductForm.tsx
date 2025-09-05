@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Save, Package } from "lucide-react";
+import { useSuppliers } from "@/hooks/useSuppliers";
 
 interface ProductFormProps {
   onSubmit: (product: any) => void;
@@ -13,6 +14,7 @@ interface ProductFormProps {
 }
 
 export function ProductForm({ onSubmit, initialData }: ProductFormProps) {
+  const { suppliers, loading: suppliersLoading } = useSuppliers();
   const [formData, setFormData] = useState({
     nome: initialData?.nome || "",
     sku: initialData?.sku || `SKU${Date.now()}`,
@@ -142,13 +144,17 @@ export function ProductForm({ onSubmit, initialData }: ProductFormProps) {
 
             <div className="space-y-2">
               <Label htmlFor="fornecedor_id">Fornecedor</Label>
-              <Select onValueChange={(value) => handleChange("fornecedor_id", value)} defaultValue={formData.fornecedor_id}>
+              <Select onValueChange={(value) => handleChange("fornecedor_id", value)} defaultValue={formData.fornecedor_id} disabled={suppliersLoading}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione um fornecedor" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Nenhum fornecedor</SelectItem>
-                  {/* Lista de fornecedores será preenchida dinamicamente */}
+                  {suppliers.map((supplier) => (
+                    <SelectItem key={supplier.id} value={supplier.id}>
+                      {supplier.nome}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

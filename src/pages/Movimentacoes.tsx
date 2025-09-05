@@ -157,16 +157,17 @@ export default function Movimentacoes() {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Data/Hora</TableHead>
-                    <TableHead>Produto</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Quantidade</TableHead>
-                    <TableHead>Observação</TableHead>
-                  </TableRow>
-                </TableHeader>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Data/Hora</TableHead>
+                      <TableHead>Produto</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>Quantidade</TableHead>
+                      <TableHead>Usuário</TableHead>
+                      <TableHead>Observação</TableHead>
+                    </TableRow>
+                  </TableHeader>
                 <TableBody>
                   {movimentacoes?.map((movement) => {
                     const { date, time } = formatDate(movement.created_at);
@@ -208,6 +209,12 @@ export default function Movimentacoes() {
                             {movement.tipo === 'entrada' ? '+' : '-'}{movement.quantidade}
                           </span>
                         </TableCell>
+                        <TableCell>
+                          <div className="text-sm">
+                            <div className="font-medium">{movement.profiles?.nome || 'Usuário não encontrado'}</div>
+                            <div className="text-muted-foreground text-xs">ID: {movement.user_id.slice(0, 8)}...</div>
+                          </div>
+                        </TableCell>
                         <TableCell className="text-muted-foreground">
                           {movement.observacao || 'N/A'}
                         </TableCell>
@@ -216,7 +223,7 @@ export default function Movimentacoes() {
                   }) || []}
                   {(movimentacoes?.length || 0) === 0 && (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                         Nenhuma movimentação encontrada
                       </TableCell>
                     </TableRow>

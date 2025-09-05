@@ -40,6 +40,9 @@ export function useMovements() {
           produtos (
             nome,
             sku
+          ),
+          profiles (
+            nome
           )
         `)
         .order('created_at', { ascending: false });
@@ -80,9 +83,12 @@ export function useMovements() {
         .from('produtos')
         .select('estoque_atual')
         .eq('id', movementData.produto_id)
-        .single();
+        .maybeSingle();
 
       if (productError) throw productError;
+      if (!product) {
+        throw new Error('Produto não encontrado');
+      }
 
       const estoqueAnterior = product.estoque_atual;
       let estoquePosterior = estoqueAnterior;
@@ -112,9 +118,10 @@ export function useMovements() {
           user_id: user.id,
         }])
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) throw new Error('Erro ao registrar movimentação');
 
       toast({
         title: "Movimentação registrada!",
