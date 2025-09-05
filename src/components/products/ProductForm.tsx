@@ -88,11 +88,18 @@ export function ProductForm({ onSubmit, initialData }: ProductFormProps) {
                   <SelectValue placeholder="Selecione uma categoria" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Eletrônicos">Eletrônicos</SelectItem>
-                  <SelectItem value="Roupas">Roupas</SelectItem>
-                  <SelectItem value="Casa">Casa</SelectItem>
-                  <SelectItem value="Esporte">Esporte</SelectItem>
-                  <SelectItem value="Livros">Livros</SelectItem>
+                  <SelectItem value="Motor">Motor</SelectItem>
+                  <SelectItem value="Transmissão">Transmissão</SelectItem>
+                  <SelectItem value="Freios">Freios</SelectItem>
+                  <SelectItem value="Suspensão">Suspensão</SelectItem>
+                  <SelectItem value="Elétrica">Elétrica</SelectItem>
+                  <SelectItem value="Pneus e Rodas">Pneus e Rodas</SelectItem>
+                  <SelectItem value="Carroceria">Carroceria</SelectItem>
+                  <SelectItem value="Interior">Interior</SelectItem>
+                  <SelectItem value="Filtros">Filtros</SelectItem>
+                  <SelectItem value="Óleos e Lubrificantes">Óleos e Lubrificantes</SelectItem>
+                  <SelectItem value="Acessórios">Acessórios</SelectItem>
+                  <SelectItem value="Peças de Caminhão">Peças de Caminhão</SelectItem>
                   <SelectItem value="Outros">Outros</SelectItem>
                 </SelectContent>
               </Select>

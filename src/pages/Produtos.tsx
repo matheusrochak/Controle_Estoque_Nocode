@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -15,13 +16,15 @@ import {
 } from "@/components/ui/table";
 import { Plus, Search, Edit, Eye, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useProducts } from "@/hooks/useProducts";
+import { useProducts, Product } from "@/hooks/useProducts";
 
 export default function Produtos() {
   const { toast } = useToast();
-  const { products: produtos, loading, createProduct: addProduct } = useProducts();
+  const { products: produtos, loading, createProduct: addProduct, updateProduct } = useProducts();
   const [showForm, setShowForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [viewingProduct, setViewingProduct] = useState<Product | null>(null);
 
   const handleAddProduct = async (productData: any) => {
     try {
@@ -45,6 +48,34 @@ export default function Produtos() {
       toast({
         variant: "destructive",
         title: "Erro ao cadastrar produto",
+        description: "Verifique os dados e tente novamente.",
+      });
+    }
+  };
+
+  const handleEditProduct = async (productData: any) => {
+    if (!editingProduct) return;
+    
+    try {
+      const processedData = {
+        ...productData,
+        preco_custo: productData.preco_custo ? parseFloat(productData.preco_custo) : 0,
+        estoque_atual: parseInt(productData.estoque_atual) || 0,
+        estoque_minimo: parseInt(productData.estoque_minimo) || 0,
+        estoque_maximo: parseInt(productData.estoque_maximo) || 0,
+        fornecedor_id: productData.fornecedor_id && productData.fornecedor_id !== "none" ? productData.fornecedor_id : null,
+      };
+
+      await updateProduct(editingProduct.id, processedData);
+      toast({
+        title: "Produto atualizado!",
+        description: "As informações foram salvas com sucesso.",
+      });
+      setEditingProduct(null);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao atualizar produto",
         description: "Verifique os dados e tente novamente.",
       });
     }
@@ -216,12 +247,51 @@ export default function Produtos() {
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
-                            <Button variant="ghost" size="sm">
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm">
-                              <Edit className="w-4 h-4" />
-                            </Button>
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button variant="ghost" size="sm" onClick={() => setViewingProduct(product)}>
+                                  <Eye className="w-4 h-4" />
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-2xl">
+                                <DialogHeader>
+                                  <DialogTitle>Detalhes do Produto</DialogTitle>
+                                </DialogHeader>
+                                {viewingProduct && (
+                                  <div className="grid grid-cols-2 gap-4 py-4">
+                                    <div><strong>Nome:</strong> {viewingProduct.nome}</div>
+                                    <div><strong>SKU:</strong> {viewingProduct.sku}</div>
+                                    <div><strong>Categoria:</strong> {viewingProduct.categoria || 'N/A'}</div>
+                                    <div><strong>Unidade:</strong> {viewingProduct.unidade}</div>
+                                    <div><strong>Preço de Custo:</strong> R$ {viewingProduct.preco_custo?.toFixed(2) || '0.00'}</div>
+                                    <div><strong>Estoque Atual:</strong> {viewingProduct.estoque_atual}</div>
+                                    <div><strong>Estoque Mínimo:</strong> {viewingProduct.estoque_minimo}</div>
+                                    <div><strong>Estoque Máximo:</strong> {viewingProduct.estoque_maximo}</div>
+                                    {viewingProduct.descricao && (
+                                      <div className="col-span-2"><strong>Descrição:</strong> {viewingProduct.descricao}</div>
+                                    )}
+                                  </div>
+                                )}
+                              </DialogContent>
+                            </Dialog>
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button variant="ghost" size="sm" onClick={() => setEditingProduct(product)}>
+                                  <Edit className="w-4 h-4" />
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                                <DialogHeader>
+                                  <DialogTitle>Editar Produto</DialogTitle>
+                                </DialogHeader>
+                                {editingProduct && (
+                                  <ProductForm 
+                                    onSubmit={handleEditProduct}
+                                    initialData={editingProduct}
+                                  />
+                                )}
+                              </DialogContent>
+                            </Dialog>
                           </div>
                         </TableCell>
                       </TableRow>
