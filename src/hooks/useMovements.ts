@@ -13,11 +13,7 @@ export interface Movement {
   user_id: string;
   observacao?: string;
   created_at: string;
-  produtos: {
-    nome: string;
-    sku: string;
-  };
-  profiles: {
+  profiles?: {
     nome: string;
   };
 }
@@ -33,23 +29,37 @@ export function useMovements() {
       setLoading(true);
       setError(null);
 
-      const { data, error } = await supabase
+      // Buscar somente os dados de movimentações (sem relacionamentos)
+      const { data: movs, error } = await supabase
         .from('movimentacoes')
-        .select(`
-          *,
-          produtos (
-            nome,
-            sku
-          ),
-          profiles (
-            nome
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      setMovements((data as any) || []);
+      const movementsRaw = (movs as any[]) || [];
+
+      // Buscar os perfis dos usuários envolvidos sem exigir relação no schema
+      const userIds = Array.from(new Set(movementsRaw.map((m) => m.user_id).filter(Boolean)));
+      let profilesMap: Record<string, { nome: string }> = {};
+
+      if (userIds.length > 0) {
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('user_id, nome')
+          .in('user_id', userIds);
+
+        if (profilesError) throw profilesError;
+        profilesMap = Object.fromEntries((profilesData || []).map((p: any) => [p.user_id, { nome: p.nome }]));
+      }
+
+      // Enriquecer cada movimentação com o nome do usuário (se disponível)
+      const enriched = movementsRaw.map((m) => ({
+        ...m,
+        profiles: profilesMap[m.user_id],
+      }));
+
+      setMovements(enriched as any);
     } catch (err: any) {
       setError(err.message);
       toast({

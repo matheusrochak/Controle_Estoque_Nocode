@@ -78,8 +78,8 @@ export default function Relatorios() {
   const exportMovementsReport = () => {
     const data = filteredMovements.map(movement => ({
       Data: format(new Date(movement.created_at), 'dd/MM/yyyy HH:mm'),
-      Produto: movement.produtos?.nome || '',
-      SKU: movement.produtos?.sku || '',
+      Produto: products.find(p => p.id === movement.produto_id)?.nome || '',
+      SKU: products.find(p => p.id === movement.produto_id)?.sku || '',
       Tipo: movement.tipo,
       Quantidade: movement.quantidade,
       'Estoque Anterior': movement.estoque_anterior,
@@ -310,9 +310,9 @@ export default function Relatorios() {
                         </TableCell>
                         <TableCell>
                           <div>
-                            <div className="font-medium">{movement.produtos?.nome}</div>
+                            <div className="font-medium">{products.find(p => p.id === movement.produto_id)?.nome}</div>
                             <div className="text-sm text-muted-foreground font-mono">
-                              {movement.produtos?.sku}
+                              {products.find(p => p.id === movement.produto_id)?.sku}
                             </div>
                           </div>
                         </TableCell>
