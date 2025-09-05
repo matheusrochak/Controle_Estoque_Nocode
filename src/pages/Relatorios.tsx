@@ -19,11 +19,35 @@ export default function Relatorios() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   
+  // Filtros do inventário
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [stockStatus, setStockStatus] = useState('all');
+  
   const { products, getLowStockProducts } = useProducts();
   const { movements, getMovementsByDateRange } = useMovements();
   const { suppliers } = useSuppliers();
 
   const lowStockProducts = getLowStockProducts();
+  
+  // Obter categorias únicas dos produtos
+  const uniqueCategories = Array.from(new Set(products.map(p => p.categoria).filter(Boolean)));
+  
+  // Função para filtrar produtos do inventário
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = searchTerm === '' || 
+      product.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (product.categoria && product.categoria.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    const matchesCategory = selectedCategory === 'all' || product.categoria === selectedCategory;
+    
+    const matchesStockStatus = stockStatus === 'all' ||
+      (stockStatus === 'low' && product.estoque_atual <= product.estoque_minimo) ||
+      (stockStatus === 'normal' && product.estoque_atual > product.estoque_minimo);
+    
+    return matchesSearch && matchesCategory && matchesStockStatus;
+  });
   
   const totalInventoryValue = products.reduce(
     (total, product) => total + (product.estoque_atual * product.preco_custo), 0
@@ -61,7 +85,7 @@ export default function Relatorios() {
   };
 
   const exportInventoryReport = () => {
-    const data = products.map(product => ({
+    const data = filteredProducts.map(product => ({
       SKU: product.sku,
       Nome: product.nome,
       Categoria: product.categoria || '',
@@ -185,7 +209,66 @@ export default function Relatorios() {
                 Exportar CSV
               </Button>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
+              {/* Filtros */}
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="space-y-2">
+                  <Label htmlFor="search">Buscar</Label>
+                  <Input
+                    id="search"
+                    placeholder="Nome, SKU ou categoria..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Categoria</Label>
+                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todas as categorias" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas as categorias</SelectItem>
+                      {uniqueCategories.map((categoria) => (
+                        <SelectItem key={categoria} value={categoria}>
+                          {categoria}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Status do Estoque</Label>
+                  <Select value={stockStatus} onValueChange={setStockStatus}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="normal">Normal</SelectItem>
+                      <SelectItem value="low">Estoque Baixo</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">
+                  {filteredProducts.length} produto(s) encontrado(s)
+                </p>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    setSearchTerm('');
+                    setSelectedCategory('all');
+                    setStockStatus('all');
+                  }}
+                >
+                  Limpar Filtros
+                </Button>
+              </div>
+
               <div className="rounded-md border">
                 <Table>
                   <TableHeader>
@@ -200,7 +283,7 @@ export default function Relatorios() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {products.map((product) => (
+                    {filteredProducts.map((product) => (
                       <TableRow key={product.id}>
                         <TableCell className="font-mono">{product.sku}</TableCell>
                         <TableCell className="font-medium">{product.nome}</TableCell>
